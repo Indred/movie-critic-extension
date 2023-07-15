@@ -17,10 +17,8 @@ function detectHover() {
                 console.log("hovered");
                 console.log(movieIMG.nextElementSibling.textContent);
                 movieName = movieIMG.nextElementSibling.textContent;
-                (async () => {
-                    const respone = await chrome.runtime.sendMessage({movieName: movieName});
-                    console.log(respone);
-                });
+                const response = chrome.runtime.sendMessage({movieName: movieName});
+                console.log(response);
                 }, 1000);
             }
         });
