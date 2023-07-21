@@ -3,10 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Movie Critic Extension</title>
+    <link rel="stylesheet" href="popup.css">
 </head>
 <body>
-    <h1>HELLO</h1>
+    <header>
+        <img src="../icons/clapperboard-48.png" alt="Movie Critic Logo">
+        <div class="header-text">
+            <p>Movie</p>
+            <p id="critic">Critic</p>
+        </div>
+    </header>
+    <main>
+        <div class="name-search">
+            <label>Movie/Series Name:</label>
+            <input type="text" placeholder="Search for a movie...">
+        </div>
+
+        <div class="year-search">
+            <label>Release Date:
+                <label class="optional">(optional)</label>
+            </label>
+            <input type="text" placeholder="Enter release date...">
+        </div>
+
+        <div class="search-button">
+            <button class="button-24" role="button">Search</button>
+        </div>
+    </main>
 </body>
 <script src="popup.js"></script>
 </html>
