@@ -1,5 +1,5 @@
 
-console.log("CONTENT SCRIPT LOADED");
+// console.log("CONTENT SCRIPT LOADED");
 
 const popup = document.createElement("div");
 const header = document.createElement("h1");
@@ -10,12 +10,13 @@ function showPopup(movieIMG, movieName) {
 
     popup.style.position = 'fixed';
     popup.style.display = "block";
-    popup.style.border = "1px solid #ccc";
+    popup.style.border = "3px outset";
     popup.style.padding = "10px";
     popup.style.color = 'black';
     popup.style.background = 'rgba(255, 255, 255, 0.8)';
     popup.style.zIndex = "999";
-    popup.style.borderRadius = '6 px';
+    popup.style.overflow = "hidden";
+    popup.style.borderRadius = '12px';
 
     const imageRect = movieIMG.getBoundingClientRect();
 
@@ -38,44 +39,62 @@ function showPopup(movieIMG, movieName) {
 
 }
 
+
 function detectHover() {
     let movieIMGs = document.querySelectorAll(".boxart-image");
+    let hoverTimer;
+    let previewModal = undefined;
     try {
-        movieIMGs.forEach((movieIMG) => {
+        for (let movieIMG of movieIMGs) {
             movieIMG.onmouseenter = () => {
-                const hoverTimer = setTimeout(() => {
-                    console.log("hovered");
-                    
-                    console.log(movieIMG.nextElementSibling.textContent);
+                // mouseleave bug solution (not exactly the best but it works)
+                clearTimeout(hoverTimer);
+                popup.style.display = 'none';
+                
+                setTimeout(() => {
+                    previewModal = document.getElementsByClassName("previewModal--container mini-modal has-smaller-buttons")[0]
+                    if (previewModal != null) {
+                        console.log("on");
+                        previewModal.onmouseleave = () => {
+                            clearTimeout(hoverTimer);
+                            popup.style.display = 'none';
+                        }
+                    }
+                    console.log(previewModal);
+                }, 500);
 
+
+                hoverTimer = setTimeout(() => {
                     let movieName = movieIMG.nextElementSibling.textContent;
+
                     const response = (async () => await chrome.runtime.sendMessage({movieName: movieName}));
 
+                    
                     showPopup(movieIMG, movieName);
-                }, 1500);
-                movieIMG.onmouseleave = () => {
-                    //clearTimeout(hoverTimer);
-                    popup.style.display = 'none';
-                    console.log("off");
-                }
+                }, 1000);
+
             }
-        });
+            
+        }
     } catch (error) {
         console.log(error);
     }
 }
 
-
-const observer = new MutationObserver((mutations) => {
-    for (let mutation of mutations) { 
-        if (mutation.type === "childList") {
-            detectHover();
+window.addEventListener("load", () => {
+    const observer = new MutationObserver((mutations) => {
+        for (let mutation of mutations) { 
+            if (mutation.type === "childList") {
+                detectHover();
+            }
         }
-    }
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    detectHover();
 });
 
-
-observer.observe(document.body, { childList: true, subtree: true });
 
 
 
