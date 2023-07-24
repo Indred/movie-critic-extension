@@ -4,7 +4,7 @@
 const popup = document.createElement("div");
 const header = document.createElement("h1");
 
-function showPopup(movieIMG, movieName) {
+function showPopup(previewModal, movieName) {
 
     popup.className = "info-popup";
 
@@ -18,14 +18,14 @@ function showPopup(movieIMG, movieName) {
     popup.style.overflow = "hidden";
     popup.style.borderRadius = '12px';
 
-    const imageRect = movieIMG.getBoundingClientRect();
+    const imageRect = previewModal.getBoundingClientRect();
 
     const infoTop = imageRect.top;
     const infoLeft = imageRect.left;
 
-    popup.style.top = infoTop/2.5 + 'px'; // change as needed later
-    popup.style.left = infoLeft - (imageRect.width/1.5)/2 + 'px';
-    popup.style.width = imageRect.width*1.5 + 'px';
+    popup.style.top = infoTop/3 + 'px'; // change as needed later
+    popup.style.left = infoLeft + 'px';
+    popup.style.width = imageRect.width + 'px';
 
 
 
@@ -70,7 +70,7 @@ function detectHover() {
                     const response = (async () => await chrome.runtime.sendMessage({movieName: movieName}));
 
                     
-                    showPopup(movieIMG, movieName);
+                    showPopup(previewModal, movieName);
                 }, 1000);
 
             }
