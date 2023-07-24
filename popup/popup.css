@@ -8,6 +8,11 @@ body {
     border-bottom: 1px solid rgba(0,0,0,.06);
 }
 
+img {
+    max-width: 48px;
+    max-height: 48px;
+}
+
 main {
     background-color: #fff;
     margin: 0;
@@ -21,13 +26,13 @@ header {
     justify-content: center;
     align-items: center;
     border-bottom: 1px solid rgba(0,0,0,.06);
+    gap: 12px;
 }
 
 .header-text {
     display: flex;
     font-size: 20px;
     font-weight: 900;
-    gap: 2px;
 }
 
 #critic {

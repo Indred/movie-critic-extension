@@ -67,10 +67,11 @@ function detectHover() {
                 hoverTimer = setTimeout(() => {
                     let movieName = movieIMG.nextElementSibling.textContent;
 
-                    const response = (async () => await chrome.runtime.sendMessage({movieName: movieName}));
-
-                    
-                    showPopup(previewModal, movieName);
+                    const data = chrome.runtime.sendMessage({movieName: movieName, movieYear: null});
+                    console.log(data);
+                    if (previewModal != null) {
+                        showPopup(previewModal, movieName);
+                    }
                 }, 1000);
 
             }
