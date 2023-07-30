@@ -9,6 +9,12 @@ notFound.style.fontWeight = "bold";
 notFound.style.color = "red";
 notFound.innerText = "Movie not found!";
 
+
+let OPENAI_API_KEY;
+chrome.storage.local.get(['OPENAI_API_KEY'], function (result) {
+    OPENAI_API_KEY = result.OPENAI_API_KEY;
+});
+
 searchButton.addEventListener("click", () => {
     const movieTitle = document.getElementById("movieTitle").value;
     const movieYear = document.getElementById("movieYear").value;
@@ -53,6 +59,10 @@ function showData(movie) {
         <div class="hero">
             <div class="actors">🎭: ${movie.actors}</div>
             <div class="awards">🏆: ${movie.awards}</div>
+        </div>
+        <div class="critique-container">
+            <div class="clapperboard">Critique 🎬</div>
+            <div class="critique">${movie.critique}</div>
         </div>
     </div>
     <div class="footer">
@@ -114,6 +124,9 @@ function showData(movie) {
     margin: 0.5rem;
     margin-top: 0.75rem;
     gap: 0.5rem;
+    border-top: 1px solid rgba(0,0,0,.06);
+    border-bottom: 1px solid rgba(0,0,0,.06);
+    padding: 0.5rem;
     `;
 
     //actors
@@ -179,6 +192,33 @@ function showData(movie) {
         popup.style.display = "none";
         main.style.display = "block";
     }
+
+    //critique-container
+    const critiqueContainer = popup.querySelector(".critique-container");
+    critiqueContainer.style.cssText = `
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin: 0.5rem;
+    margin-top: 0.75rem;
+    gap: 0.5rem;
+    `;
+
+    //clapperboard
+    const clapperboard = popup.querySelector(".clapperboard");
+    clapperboard.style.cssText = `
+    font-size: 1rem;
+    font-weight: 800;
+    `;
+
+    //critique
+    const critique = popup.querySelector(".critique");
+    critique.style.cssText = `
+    font-size: 0.8rem;
+    `;
+
+    
 
     // footer
     const footer = popup.querySelector(".footer");

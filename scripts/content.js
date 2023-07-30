@@ -1,8 +1,12 @@
 
-// console.log("CONTENT SCRIPT LOADED");
-
 const popup = document.createElement("div");
 const header = document.createElement("h1");
+
+let OPENAI_API_KEY;
+chrome.storage.local.get(['OPENAI_API_KEY'], function (result) {
+    OPENAI_API_KEY = result.OPENAI_API_KEY;
+});
+
 
 function showPopup(previewModal, movie) {
 
@@ -29,6 +33,11 @@ function showPopup(previewModal, movie) {
         <div class="hero">
             <div class="actors">🎭: ${movie.actors}</div>
             <div class="awards">🏆: ${movie.awards}</div>
+        </div>
+        <div class="critique-container">
+            <h1 class="clapperboard">Critique 🎬</h1>
+            <div class="critique"></div>
+            <div class="loader"></div>
         </div>
     </div>
 
@@ -88,6 +97,9 @@ function showPopup(previewModal, movie) {
     margin: 0.5rem;
     margin-top: 0.75rem;
     gap: 0.5rem;
+    border-top: 1px solid rgba(0,0,0,.06);
+    border-bottom: 1px solid rgba(0,0,0,.06);
+    padding: 0.5rem;
     `;
 
     //actors
@@ -101,6 +113,51 @@ function showPopup(previewModal, movie) {
     awards.style.cssText = `
     font-size: 1.6rem;
     `;
+
+    //critique-container
+    const critiqueContainer = popup.querySelector(".critique-container");
+    critiqueContainer.style.cssText = `
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin: 0.5rem;
+    margin-top: 0.75rem;
+    margin-bottom: 0.75rem;
+    gap: 0.5rem;
+    `;
+
+    //clapperboard
+    const clapperboard = popup.querySelector(".clapperboard");
+    clapperboard.style.cssText = `
+    font-size: 2rem;
+    margin: 0;
+    padding: 0;
+    `;
+
+    //loader
+    const loader = popup.querySelector(".loader");
+    loader.style.cssText = `
+    border: 4px solid #f3f3f3; /* Light grey */
+    border-top: 4px solid red; /* Blue */
+    border-radius: 50%;
+    width: 15px;
+    height: 15px;
+    animation: spin 0.5s linear infinite;
+    `;
+
+
+
+    const keyframes = `
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    `;
+    const style = document.createElement("style");
+    style.innerHTML = keyframes;
+    document.head.appendChild(style);
+
 
     popup.className = "info-popup";
 
@@ -116,10 +173,11 @@ function showPopup(previewModal, movie) {
 
 
     const bodyRect = document.body.getBoundingClientRect();
-    console.log(bodyRect.width);
     const imageRect = previewModal.getBoundingClientRect();
-    console.log(imageRect.left);
 
+    loader.style.marginTop = imageRect.height/6.5 + 'px';
+
+    
     let infoTop = imageRect.top;
     let infoLeft = imageRect.left;
 
@@ -140,16 +198,60 @@ function showPopup(previewModal, movie) {
     }
 
 
-    console.log(infoLeft);
 
     popup.style.top = infoTop + 'px'; // change as needed later
     popup.style.left = infoLeft + 'px';
     popup.style.width = imageRect.width + 'px';
+    popup.style.height = imageRect.height + 'px';
 
 
     popup.style.display = "block";
 
 
+}
+
+
+async function getCritique(movie) {
+    try {
+        const openai_response = await fetch(`https://api.openai.com/v1/chat/completions`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${OPENAI_API_KEY}`, // Corrected here
+            },
+            body: JSON.stringify({
+                model: 'gpt-3.5-turbo',
+                messages: [
+                    { role: 'system', content: 'You are a movie/series critic. Critique the movie/series sent in 50 words.' },
+                    { role: 'user', content: movie.name },
+                ],     
+                max_tokens: 80,
+                temperature: 0.7,
+            }),
+        });
+        
+        const openai_data = await openai_response.json();
+        console.log(openai_data);
+        movie.critique = openai_data.choices[0].message.content;
+    } catch (error) {
+        console.log(error);
+    }
+
+    console.log(movie.critique);
+    return movie;
+}
+
+function updatePopup(movie) {
+    const loader = popup.querySelector(".loader");
+    loader.style.display = "none";
+
+    const critique = popup.querySelector(".critique");
+    critique.style.cssText = `
+    font-size: 1.55rem;
+    margin-top: 0.25rem;
+    `;
+
+    critique.textContent = movie.critique;
 }
 
 
@@ -183,6 +285,8 @@ function detectHover() {
                         if (previewModal != null) {
                             if (response.movie.Response === "True") {
                                 showPopup(previewModal, response.movie);
+                                const movie = await getCritique(response.movie);
+                                updatePopup(movie);
                             } 
                         }
                     })();
