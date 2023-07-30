@@ -4,37 +4,150 @@
 const popup = document.createElement("div");
 const header = document.createElement("h1");
 
-function showPopup(previewModal, movieName) {
+function showPopup(previewModal, movie) {
+
+    popup.innerHTML = `
+    <div class="header">
+        <div class="left">
+            <h1>${movie.name}</h1>
+            <ul>
+                <li>${movie.year}</li>
+                <li>${movie.runtime}</li>
+                <li>${movie.genre}</li>
+            <ul>
+        </div>
+        <div class="right">
+            <div class="imdb">
+                <div class="imdb-rating">⭐: ${movie.imdbRating}/10</div>
+                <div class="imdb-votes">👤: ${movie.imdbVotes}</div>
+            </div>
+            <div class="rotten-tomatoes">🍅: ${movie.rottenTomatoesRating}</div>
+            <div class="box-office">💰: ${movie.BoxOffice}</div>
+        </div>
+    </div>
+    <div class="body">
+        <div class="hero">
+            <div class="actors">🎭: ${movie.actors}</div>
+            <div class="awards">🏆: ${movie.awards}</div>
+        </div>
+    </div>
+
+    `
+    document.body.appendChild(popup);
+
+    // header
+    const header = popup.querySelector(".header");
+    header.style.cssText = `
+    display: flex;
+    justify-content: space-between;
+    margin: 0.5rem;
+    `;
+
+    //left
+    const left = popup.querySelector(".left");
+    left.style.cssText = `
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+    `;
+
+    //right
+    const right = popup.querySelector(".right");
+    right.style.cssText = `
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    font-size: 1.6rem;
+    `;
+
+
+    //title
+    const title = popup.querySelector("h1");
+    title.style.cssText =`
+    text-align: left;
+    font-size: 2rem;
+    margin: 0;
+    padding: 0;
+    `;
+
+    // list
+    const list = popup.querySelector("ul");
+    list.style.cssText = `
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 1.6rem;
+    `;
+
+    // hero
+    const hero = popup.querySelector(".hero");
+    hero.style.cssText = `
+    display: flex;
+    flex-direction: column;
+    margin: 0.5rem;
+    margin-top: 0.75rem;
+    gap: 0.5rem;
+    `;
+
+    //actors
+    const actors = popup.querySelector(".actors");
+    actors.style.cssText = `
+    font-size: 1.6rem;
+    `;
+
+    //awards
+    const awards = popup.querySelector(".awards");
+    awards.style.cssText = `
+    font-size: 1.6rem;
+    `;
 
     popup.className = "info-popup";
 
     popup.style.position = 'fixed';
     popup.style.display = "block";
-    popup.style.border = "3px outset";
-    popup.style.padding = "10px";
+    popup.style.border = "1px outset";
+    popup.style.padding = "0";
     popup.style.color = 'black';
     popup.style.background = 'rgba(255, 255, 255, 0.8)';
     popup.style.zIndex = "999";
     popup.style.overflow = "hidden";
-    popup.style.borderRadius = '12px';
+    popup.style.borderRadius = '4px';
 
+
+    const bodyRect = document.body.getBoundingClientRect();
+    console.log(bodyRect.width);
     const imageRect = previewModal.getBoundingClientRect();
+    console.log(imageRect.left);
 
-    const infoTop = imageRect.top;
-    const infoLeft = imageRect.left;
+    let infoTop = imageRect.top;
+    let infoLeft = imageRect.left;
 
-    popup.style.top = infoTop/3 + 'px'; // change as needed later
+    if (imageRect.left <= bodyRect.width/2) {
+        infoLeft += imageRect.width;
+    } else {
+        infoLeft -= imageRect.width;
+    }
+
+
+
+    if (infoLeft <= 0) {
+        infoLeft = 0;
+    }
+
+    if (infoLeft >= bodyRect.width) {
+        infoLeft = bodyRect.width - imageRect.width;
+    }
+
+
+    console.log(infoLeft);
+
+    popup.style.top = infoTop + 'px'; // change as needed later
     popup.style.left = infoLeft + 'px';
     popup.style.width = imageRect.width + 'px';
 
 
-
-    header.textContent = movieName;
-    header.style.textAlign = "center";
-    popup.appendChild(header);
-
-    
-    document.body.appendChild(popup);
+    popup.style.display = "block";
 
 
 }
@@ -47,7 +160,6 @@ function detectHover() {
     try {
         for (let movieIMG of movieIMGs) {
             movieIMG.onmouseenter = () => {
-                // mouseleave bug solution (not exactly the best but it works)
                 clearTimeout(hoverTimer);
                 popup.style.display = 'none';
                 
@@ -65,13 +177,15 @@ function detectHover() {
 
 
                 hoverTimer = setTimeout(() => {
-                    let movieName = movieIMG.nextElementSibling.textContent;
-
-                    const data = chrome.runtime.sendMessage({movieName: movieName, movieYear: null});
-                    console.log(data);
-                    if (previewModal != null) {
-                        showPopup(previewModal, movieName);
-                    }
+                    let movieTitle = movieIMG.nextElementSibling.textContent;
+                    (async () => {
+                        const response = await chrome.runtime.sendMessage({movieName: movieTitle});
+                        if (previewModal != null) {
+                            if (response.movie.Response === "True") {
+                                showPopup(previewModal, response.movie);
+                            } 
+                        }
+                    })();
                 }, 1000);
 
             }
