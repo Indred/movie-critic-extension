@@ -7,8 +7,15 @@ chrome.storage.local.get(['OPENAI_API_KEY'], function (result) {
     OPENAI_API_KEY = result.OPENAI_API_KEY;
 });
 
+function getScalingFactor(originalHeight, currentHeight) {
+    return originalHeight / currentHeight;
+}
 
 function showPopup(previewModal, movie) {
+    console.log(previewModal.offsetHeight);
+    const scale = getScalingFactor(371, previewModal.offsetHeight);
+    console.log("scale " + scale);
+    const imageRect = previewModal.getBoundingClientRect();
 
     popup.innerHTML = `
     <div class="header">
@@ -67,18 +74,17 @@ function showPopup(previewModal, movie) {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    font-size: 1.6rem;
     `;
-
+    right.style.fontSize = `${scale * 1.6}rem`;
 
     //title
     const title = popup.querySelector("h1");
     title.style.cssText =`
     text-align: left;
-    font-size: 2rem;
     margin: 0;
     padding: 0;
     `;
+    title.style.fontSize = `${scale * 2}rem`;
 
     // list
     const list = popup.querySelector("ul");
@@ -86,8 +92,8 @@ function showPopup(previewModal, movie) {
     list-style: none;
     padding: 0;
     margin: 0;
-    font-size: 1.6rem;
     `;
+    list.style.fontSize = `${scale * 1.6}rem`;
 
     // hero
     const hero = popup.querySelector(".hero");
@@ -104,15 +110,11 @@ function showPopup(previewModal, movie) {
 
     //actors
     const actors = popup.querySelector(".actors");
-    actors.style.cssText = `
-    font-size: 1.6rem;
-    `;
+    actors.style.fontSize = `${scale * 1.55}rem`;
 
     //awards
     const awards = popup.querySelector(".awards");
-    awards.style.cssText = `
-    font-size: 1.6rem;
-    `;
+    awards.style.fontSize = `${scale * 1.55}rem`;
 
     //critique-container
     const critiqueContainer = popup.querySelector(".critique-container");
@@ -130,10 +132,10 @@ function showPopup(previewModal, movie) {
     //clapperboard
     const clapperboard = popup.querySelector(".clapperboard");
     clapperboard.style.cssText = `
-    font-size: 2rem;
     margin: 0;
     padding: 0;
     `;
+    clapperboard.style.fontSize = `${scale * 1.9}rem`;
 
     //loader
     const loader = popup.querySelector(".loader");
@@ -173,7 +175,6 @@ function showPopup(previewModal, movie) {
 
 
     const bodyRect = document.body.getBoundingClientRect();
-    const imageRect = previewModal.getBoundingClientRect();
 
     loader.style.marginTop = imageRect.height/6.5 + 'px';
 
@@ -202,7 +203,7 @@ function showPopup(previewModal, movie) {
     popup.style.top = infoTop + 'px'; // change as needed later
     popup.style.left = infoLeft + 'px';
     popup.style.width = imageRect.width + 'px';
-    popup.style.height = imageRect.height + 'px';
+    popup.style.minHeight = imageRect.height + 'px';
 
 
     popup.style.display = "block";
@@ -237,19 +238,21 @@ async function getCritique(movie) {
         console.log(error);
     }
 
-    console.log(movie.critique);
     return movie;
 }
 
-function updatePopup(movie) {
+function updatePopup(previewModal, movie) {
+    const scale = getScalingFactor(371, previewModal.offsetHeight);
+
+
     const loader = popup.querySelector(".loader");
     loader.style.display = "none";
 
     const critique = popup.querySelector(".critique");
     critique.style.cssText = `
-    font-size: 1.55rem;
     margin-top: 0.25rem;
     `;
+    critique.style.fontSize = `${scale * 1.6}rem`;
 
     critique.textContent = movie.critique;
 }
@@ -286,7 +289,7 @@ function detectHover() {
                             if (response.movie.Response === "True") {
                                 showPopup(previewModal, response.movie);
                                 const movie = await getCritique(response.movie);
-                                updatePopup(movie);
+                                updatePopup(previewModal, movie);
                             } 
                         }
                     })();

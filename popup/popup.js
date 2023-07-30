@@ -1,5 +1,5 @@
 const searchButton = document.getElementsByClassName("search-button")[0];
-
+const popup = document.createElement("div");
 const search_div = document.getElementsByClassName("search-button")[0];
 const notFound = document.createElement("div");
 search_div.appendChild(notFound);
@@ -15,6 +15,51 @@ chrome.storage.local.get(['OPENAI_API_KEY'], function (result) {
     OPENAI_API_KEY = result.OPENAI_API_KEY;
 });
 
+
+async function getCritique(movie) {
+    try {
+        const openai_response = await fetch(`https://api.openai.com/v1/chat/completions`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${OPENAI_API_KEY}`, // Corrected here
+            },
+            body: JSON.stringify({
+                model: 'gpt-3.5-turbo',
+                messages: [
+                    { role: 'system', content: 'You are a movie/series critic. Critique the movie/series sent in 50 words.' },
+                    { role: 'user', content: movie.name },
+                ],     
+                max_tokens: 80,
+                temperature: 0.7,
+            }),
+        });
+        
+        const openai_data = await openai_response.json();
+        console.log(openai_data);
+        movie.critique = openai_data.choices[0].message.content;
+    } catch (error) {
+        console.log(error);
+    }
+
+    return movie;
+}
+
+function updatePopup(movie) {
+
+    const loader = popup.querySelector(".loader");
+    loader.style.display = "none";
+
+    const critique = popup.querySelector(".critique");
+    critique.style.cssText = `
+    margin-top: 0.25rem;
+    font-size: 0.8rem;
+    `;
+
+    critique.textContent = movie.critique;
+}
+
+
 searchButton.addEventListener("click", () => {
     const movieTitle = document.getElementById("movieTitle").value;
     const movieYear = document.getElementById("movieYear").value;
@@ -23,6 +68,10 @@ searchButton.addEventListener("click", () => {
         const response = await chrome.runtime.sendMessage({movieName: movieTitle, movieYear: movieYear});
         if (response.movie.Response === "True") {
             showData(response.movie);
+            (async () => {
+                const movie = await getCritique(response.movie);
+                updatePopup(movie);
+            })();
         } else {
             notFound.style.display = "block";
 
@@ -32,10 +81,11 @@ searchButton.addEventListener("click", () => {
 });
 
 
+
+
 function showData(movie) {
     const main = document.querySelector("main");
     main.style.display = "none";
-    const popup = document.createElement("div");
     popup.innerHTML = `
     <div class="header">
         <div class="left">
@@ -61,8 +111,9 @@ function showData(movie) {
             <div class="awards">🏆: ${movie.awards}</div>
         </div>
         <div class="critique-container">
-            <div class="clapperboard">Critique 🎬</div>
-            <div class="critique">${movie.critique}</div>
+            <h1 class="clapperboard">Critique 🎬</h1>
+            <div class="critique"></div>
+            <div class="loader"></div>
         </div>
     </div>
     <div class="footer">
@@ -202,21 +253,40 @@ function showData(movie) {
     align-items: center;
     margin: 0.5rem;
     margin-top: 0.75rem;
+    margin-bottom: 0.75rem;
     gap: 0.5rem;
     `;
 
     //clapperboard
     const clapperboard = popup.querySelector(".clapperboard");
     clapperboard.style.cssText = `
-    font-size: 1rem;
-    font-weight: 800;
+    margin: 0;
+    padding: 0;
+    `;
+    clapperboard.style.fontSize = "1rem";
+
+    //loader
+    const loader = popup.querySelector(".loader");
+    loader.style.cssText = `
+    border: 4px solid #f3f3f3; /* Light grey */
+    border-top: 4px solid red; /* Blue */
+    border-radius: 50%;
+    width: 15px;
+    height: 15px;
+    animation: spin 0.5s linear infinite;
     `;
 
-    //critique
-    const critique = popup.querySelector(".critique");
-    critique.style.cssText = `
-    font-size: 0.8rem;
+
+
+    const keyframes = `
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
     `;
+    const style = document.createElement("style");
+    style.innerHTML = keyframes;
+    document.head.appendChild(style);
 
     
 
