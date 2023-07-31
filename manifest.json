@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
-    "name": "Movie Critic",
-    "description": "Base Level Extension",
+    "name": "MovieCritic: Movie Statistics on Netflix",
+    "description": "View IMDb and Rotten Tomatoes ratings and critiques on Netflix or through the extension search bar!",
     "version": "1.0",
     "action": {
         "default_popup": "popup/popup.html"

@@ -12,7 +12,7 @@ function getScalingFactor(originalHeight, currentHeight) {
 }
 
 function showPopup(previewModal, movie) {
-    console.log(previewModal.offsetHeight);
+
     const scale = getScalingFactor(371, previewModal.offsetHeight);
     console.log("scale " + scale);
     const imageRect = previewModal.getBoundingClientRect();
@@ -47,8 +47,8 @@ function showPopup(previewModal, movie) {
             <div class="loader"></div>
         </div>
     </div>
-
     `
+    
     document.body.appendChild(popup);
 
     // header
@@ -136,6 +136,7 @@ function showPopup(previewModal, movie) {
     padding: 0;
     `;
     clapperboard.style.fontSize = `${scale * 1.9}rem`;
+
 
     //loader
     const loader = popup.querySelector(".loader");
@@ -277,7 +278,6 @@ function detectHover() {
                             popup.style.display = 'none';
                         }
                     }
-                    console.log(previewModal);
                 }, 500);
 
 
